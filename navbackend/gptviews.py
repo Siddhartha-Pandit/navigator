@@ -35,3 +35,10 @@ def user_signup(request):
 def user_logout(request):
     logout(request)
     return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+# {
+#   "email": "john.doe@example.com",
+#   "fname": "John",
+#   "lname": "Doe",
+#   "password": "123456"
+# }
