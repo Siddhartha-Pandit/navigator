@@ -1,11 +1,10 @@
-from email import encoders
 from email.message import EmailMessage
-from email.mime.base import MIMEBase
 import smtplib
+import os
 
 def mailexpress(reciever,subject,body,attachments):
-    SENDER_EMAIL='demoemailhw@gmail.com'
-    EMAIL_PASSWORD='nbjhzxwxepyamsbv'
+    SENDER_EMAIL=os.environ.get('projectemail')
+    EMAIL_PASSWORD=os.environ.get('projectpass')
     msg=EmailMessage()
     msg['Subject']=subject
     msg['From']=SENDER_EMAIL
@@ -23,5 +22,3 @@ def mailexpress(reciever,subject,body,attachments):
     with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
         smtp.login(SENDER_EMAIL,EMAIL_PASSWORD)
         smtp.send_message(msg)
-        
-
