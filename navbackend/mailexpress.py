@@ -15,7 +15,8 @@ def mailexpress(reciever,subject,body,attachments):
     for attachment in attachments:
         with open(attachment, 'rb') as f:
             file_data = f.read()
-            file_name = f.name
+            fil = f.name
+            file_name=fil.split('/')[-1]
             msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=file_name)
     
 
