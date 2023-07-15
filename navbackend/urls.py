@@ -4,5 +4,6 @@ urlpatterns=[
     path('',views.signin,name='signin'),
     path('signup',views.signup,name='signout'),
     path('signout',views.signout,name='signout'),
+    # path('verify/<token>',views.activate,name='activate'),
     
 ]
