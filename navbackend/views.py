@@ -1,5 +1,5 @@
 from . tokens import generate_token
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework.response import Response
@@ -7,7 +7,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from . mailexpress import mailexpress
-from .models import candiate
+# from .models import candidate\
+from .models import User
+from django.utils.encoding import force_bytes, force_str
 # from django.utils.encoding import force_bytes,force_text
 @api_view(['POST'])
 def signin(request):
@@ -21,6 +23,7 @@ def signin(request):
     else:
         return Response({'message':'Invalid cresidenetail'},status=status.HTTP_401_UNAUTHORIZED)
    
+   
 
 @api_view(['POST'])
 def signup(request):
@@ -29,19 +32,17 @@ def signup(request):
     password=request.data.get('password')
     fname=request.data.get('fname')
     lname=request.data.get('lname')
-    obj = candiate(email=email, firstname=fname, lastname=lname)  # Create a new instance and assign values
-
-    obj.save() 
+   
     
     myuser=User.objects.create_user(username=email,email=email,password=password)
     myuser.first_name=fname
     myuser.last_name=lname
-    myuser.is_active=True
+    myuser.is_active=False
     myuser.save()
     current_site=get_current_site(request)
     name=myuser.first_name
     domain=current_site.domain
-    # uid=urlsafe_base64_encode(force_bytes(myuser.pk))
+    uid=urlsafe_base64_encode(force_bytes(myuser.pk))
     token=generate_token.make_token(myuser)
     email_subject="Confirm Your email to use navigator"
     email_body=f"""
@@ -56,7 +57,7 @@ def signup(request):
     </p>
     <br><br>
     <div style="width: 100%;">
-        <a href="http://{domain}/verify/{token}">
+        <a href="http://{domain}{'activate'}?uidb64={uid}&token={token}">
             <button style="height: 50px; width: 150px; background-color: #3770CC; color: rgb(255, 251, 251); border: none; font-size: 20px; cursor: pointer;">
                 Verify Account
             </button>
@@ -68,6 +69,8 @@ def signup(request):
 </html>
 
                 """
+    #  url = f"http://{domain}{reverse('activte')}?uidb64={uid}&token={token}"
+    # http://{{domain}}{% url 'activte' uidb64=uid token=token %}
     
     empty=[]
     
@@ -83,15 +86,17 @@ def signout(request):
     return Response({'message':'Log out sucessfully'},status=status.HTTP_200_OK)
 
 
-# def activate(request,uidb64,token):
-#     try:
-#         uid=force_text(urlsafe_base64_decode(uidb64))
-#         myuser=User.objects.get(pk=uid)
-#     except(TypeError,ValueError,OverflowError,User.DoesNotExist):
-#         myuser=None
-#     if myuser is not None and generate_token.check_token(myuser,token):
-#         myuser.is_active=True
-#         myuser.save()
-#         login(request,myuser)
-#     else:
-#         pass
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        myuser = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        myuser = None
+    if myuser is not None and generate_token.check_token(myuser, token):
+        myuser.is_active = True
+        myuser.save()
+        login(request, myuser)
+        return Response({'message':'Verified sucessfully'})
+    # Rest of the code...
