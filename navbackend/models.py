@@ -10,7 +10,7 @@ class User(AbstractUser):
     username=None
     email=models.EmailField(primary_key=True,unique=True)
     user_type=models.CharField(max_length=20,choices=USER_TYPE)
-    is_email_verified=models.BooleanField(default=True)
+    is_email_verified=models.BooleanField(default=False)
     objects=usermanager()
     USERNAME_FIELD='email'
     REQUIRED_FIELDS=[]

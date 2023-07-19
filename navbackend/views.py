@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from . tokens import generate_token
 # from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
@@ -7,10 +8,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from . mailexpress import mailexpress
-# from .models import candidate\
+from django.template.loader import render_to_string
 from .models import User
-from django.utils.encoding import force_bytes, force_str
-# from django.utils.encoding import force_bytes,force_text
+# from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes,force_str
 @api_view(['POST'])
 def signin(request):
  
@@ -37,44 +38,27 @@ def signup(request):
     myuser=User.objects.create_user(email=email,password=password)
     myuser.first_name=fname
     myuser.last_name=lname
-    # myuser.is_active=True
+    myuser.is_email_verified=False
+    myuser.is_active=False
     myuser.save()
     current_site=get_current_site(request)
-    name=myuser.first_name
-    domain=current_site.domain
-    uid=urlsafe_base64_encode(force_bytes(myuser.pk))
-    token=generate_token.make_token(myuser)
+    message2=render_to_string('confirmemial.html',{
+        'name':myuser.first_name,
+        'domain':current_site.domain,
+        'uid':urlsafe_base64_encode(force_bytes(myuser.pk)),
+        'token':generate_token.make_token(myuser)
+    })
     email_subject="Confirm Your email to use navigator"
-    email_body=f"""
-                    <html>
+#     email_body=f"""
+                 
 
-<body >
-
-   <div style=" align-items: center; justify-content: center; width: 100%; flex-direction: row;">
-    <p style="font-size: 17px; width: 100%;color:#000;">
-        Hello {name}! <br>Welcome to Navigator. Please <b>Verify</b> your email to create your account.
-        <br>To verify your account, click on the button below.
-    </p>
-    <br><br>
-    <div style="width: 100%;">
-        <a href="http://{domain}{'activate'}?uidb64={uid}&token={token}">
-            <button style="height: 50px; width: 150px; background-color: #3770CC; color: rgb(255, 251, 251); border: none; font-size: 20px; cursor: pointer;">
-                Verify Account
-            </button>
-        </a>
-    </div>
-</div>
-
-
-</html>
-
-                """
+#                 """
     #  url = f"http://{domain}{reverse('activte')}?uidb64={uid}&token={token}"
     # http://{{domain}}{% url 'activte' uidb64=uid token=token %}
     
     empty=[]
     
-    mailexpress(email,email_subject,email_body,empty)
+    mailexpress(email,email_subject,message2,empty)
 
     return Response({'message':'Signup sucessful'},status=status.HTTP_201_CREATED)
     
@@ -87,16 +71,19 @@ def signout(request):
 
 
 
-
+@api_view(['GET'])
 def activate(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
-        myuser = User.objects.get(pk=uid)
+        myuser = get_object_or_404(User,pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        myuser = None
-    if myuser is not None and generate_token.check_token(myuser, token):
+       return Response({'message':'Invalid activation link'},status=404)
+    if generate_token.check_token(myuser, token):
         myuser.is_active = True
+        myuser.is_email_verified=True
         myuser.save()
         login(request, myuser)
-        return Response({'message':'Verified sucessfully'})
+        return Response({'message':'Verified sucessfully'},status=200)
+    else:
+        return Response({'message':'activation failed please try again'},status=400)
     # Rest of the code...
