@@ -34,10 +34,10 @@ def signup(request):
     lname=request.data.get('lname')
    
     
-    myuser=User.objects.create_user(username=email,email=email,password=password)
+    myuser=User.objects.create_user(email=email,password=password)
     myuser.first_name=fname
     myuser.last_name=lname
-    myuser.is_active=False
+    # myuser.is_active=True
     myuser.save()
     current_site=get_current_site(request)
     name=myuser.first_name
