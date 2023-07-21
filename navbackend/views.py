@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from .models import User
 # from django.utils.encoding import force_bytes, force_text
 from django.utils.encoding import force_bytes,force_str
+from .serializers import UserSerializers
 @api_view(['POST'])
 def signin(request):
  
@@ -19,10 +20,17 @@ def signin(request):
     password=request.data.get('password')
     user=authenticate(request,username=email,password=password)
     if user is not None:
-        login(request,user)
-        return Response({'message':'login_sucessfully'},status=status.HTTP_200_OK)
+        if user.is_email_verified:
+        
+            login(request,user)
+            serializer=UserSerializers(user)
+           
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        else:
+            return Response({'message':'Email not verified'},status=status.HTTP_401_UNAUTHORIZED)
     else:
         return Response({'message':'Invalid cresidenetail'},status=status.HTTP_401_UNAUTHORIZED)
+                        
    
    
 
@@ -38,6 +46,7 @@ def signup(request):
     myuser=User.objects.create_user(email=email,password=password)
     myuser.first_name=fname
     myuser.last_name=lname
+    myuser.user_type="candidate"
     myuser.is_email_verified=False
     myuser.is_active=False
     myuser.save()
