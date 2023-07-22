@@ -2,14 +2,15 @@ from django.shortcuts import get_object_or_404
 from . tokens import generate_token
 # from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from . mailexpress import mailexpress
 from django.template.loader import render_to_string
-from .models import User
+from .models import User,Candidate
 # from django.utils.encoding import force_bytes, force_text
 from django.utils.encoding import force_bytes,force_str
 from .serializers import UserSerializers
@@ -95,4 +96,38 @@ def activate(request, uidb64, token):
         return Response({'message':'Verified sucessfully'},status=200)
     else:
         return Response({'message':'activation failed please try again'},status=400)
-    # Rest of the code...
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def personalinfo(request):
+    try:
+        candidate=Candidate.objects.get(email=request.user.email)
+    except Candidate.DoesNotExist:
+        return Response({'message':'Candidate not found'},status=status.HTTP_404_NOT_FOUND)
+    
+    candidate.first_name = request.data.get('first_name', candidate.first_name)
+    candidate.last_name = request.data.get('last_name', candidate.last_name)
+    candidate.dob = request.data.get('dob', candidate.dob)
+    candidate.gender = request.data.get('gender', candidate.gender)
+
+    candidate.save()
+    serializer=UserSerializers(candidate)
+    return Response(serializer.data,status=status.HTTP_200_OK)
+
+from rest_framework.permissions import BasePermission
+
+# class IsCandidate(BasePermission):
+#     def has_permission(self, request, view):
+#         return request.user.user_type == 'candidate'
+
+# from .permissions import IsCandidate
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated, IsCandidate])
+# def personalinfo(request):
+#     # Your existing code here
+#     # ...
+
+
+        
