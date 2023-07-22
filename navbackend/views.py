@@ -115,7 +115,7 @@ def personalinfo(request):
     serializer=UserSerializers(candidate)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
-from rest_framework.permissions import BasePermission
+# from rest_framework.permissions import BasePermission
 
 # class IsCandidate(BasePermission):
 #     def has_permission(self, request, view):
