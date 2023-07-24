@@ -4,7 +4,9 @@ urlpatterns=[
     path('signin/',views.signin,name='signin'),
     path('signup/',views.signup,name='signout'),
     path('signout/',views.signout,name='signout'),
-    path('personalinfo/',views.personalinfo,name='updatepersonalinfo'),
+    path('personalinfoget/<str:email>',views.personalinfoget,name='getpersonalinfo'),
+    path('personalinfopost/<str:email>',views.personalinfopost,name='postpersonalinfo'),
+    
     path('verify/<uidb64>/<token>',views.activate,name='activate'),
     
 ]

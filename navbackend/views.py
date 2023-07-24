@@ -13,7 +13,8 @@ from django.template.loader import render_to_string
 from .models import User,Candidate
 # from django.utils.encoding import force_bytes, force_text
 from django.utils.encoding import force_bytes,force_str
-from .serializers import UserSerializers
+from .serializers import UserSerializers,CandidateSerializer
+# from .permission import CanUpdateorReadonly
 @api_view(['POST'])
 def signin(request):
  
@@ -45,11 +46,13 @@ def signup(request):
    
     
     myuser=User.objects.create_user(email=email,password=password)
+    user=Candidate.objects.create_user(email=email,password=password)
     myuser.first_name=fname
     myuser.last_name=lname
     myuser.user_type="candidate"
     myuser.is_email_verified=False
     myuser.is_active=False
+    user.gender="Male"
     myuser.save()
     current_site=get_current_site(request)
     message2=render_to_string('confirmemial.html',{
@@ -98,22 +101,38 @@ def activate(request, uidb64, token):
         return Response({'message':'activation failed please try again'},status=400)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def personalinfo(request):
+@api_view(['GET'])
+def personalinfoget(request, email):
     try:
-        candidate=Candidate.objects.get(email=request.user.email)
+        # candidate = get_object_or_404(Candidate, email=email)
+        candidate = Candidate.objects.get(email=email)
+        print(candidate)
     except Candidate.DoesNotExist:
-        return Response({'message':'Candidate not found'},status=status.HTTP_404_NOT_FOUND)
-    
-    candidate.first_name = request.data.get('first_name', candidate.first_name)
-    candidate.last_name = request.data.get('last_name', candidate.last_name)
-    candidate.dob = request.data.get('dob', candidate.dob)
-    candidate.gender = request.data.get('gender', candidate.gender)
+        return Response({'message': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    candidate.save()
-    serializer=UserSerializers(candidate)
-    return Response(serializer.data,status=status.HTTP_200_OK)
+ 
+    serializer = CandidateSerializer(candidate)  # Use the CandidateSerializer to serialize Candidate model data
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+   
+    
+@api_view(['PUT'])
+def personalinfopost(request, email):
+    try:
+        # Fetch the candidate based on the provided email, which is the primary key (email field).
+        candidate = Candidate.objects.get(email=email)
+    except Candidate.DoesNotExist:
+        return Response({'message': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Now, we can update the candidate object with the data from the request.
+    serializer = CandidateSerializer(instance=candidate, data=request.data,partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 # from rest_framework.permissions import BasePermission
 
