@@ -1,0 +1,25 @@
+{% autoescape off %}
+
+<html>
+
+<body >
+
+   <div style=" align-items: center; justify-content: center; width: 100%; flex-direction: row;">
+    <p style="font-size: 17px; width: 100%;color:#000;">
+        Hello {name}! <br>Welcome to Navigator. Please <b>Verify</b> your email to create your account.
+        <br>To verify your account, click on the button below.
+    </p>
+    <br><br>
+    <div style="width: 100%;">
+        <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}">
+            <button style="height: 50px; width: 150px; background-color: #3770CC; color: rgb(255, 251, 251); border: none; font-size: 20px; cursor: pointer;border-radius: 12px;">
+                Verify Account
+            </button>
+        </a>
+    </div>
+</div>
+
+
+</html>
+
+{% endautoescape %}

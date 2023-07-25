@@ -10,7 +10,8 @@ class User(AbstractUser):
     username=None
     email=models.EmailField(primary_key=True,unique=True)
     user_type=models.CharField(max_length=20,choices=USER_TYPE)
-
+    is_email_verified=models.BooleanField(default=False)
+    profile_image = models.ImageField(upload_to='static/image/',null=True)
     objects=usermanager()
     USERNAME_FIELD='email'
     REQUIRED_FIELDS=[]
@@ -23,14 +24,14 @@ from django.db import models
 
 class Candidate(User):
     GENDER_TYPE = (
+        ('NONE','None'),
         ('MALE', 'Male'),
         ('FEMALE', 'Female'),
         ('OTHER', 'Other')
     )
-    profile_image = models.ImageField(upload_to='static/image/',null=True)
     dob = models.DateField(null=True)
-    gender = models.CharField(max_length=20, choices=GENDER_TYPE,null=True)
-    mobile = models.CharField(max_length=20,null=True,default='')
+    gender = models.CharField(max_length=20, choices=GENDER_TYPE,null=True,default='None')
+    mobile = models.CharField(max_length=20,null=True,default='98')
     nationality = models.CharField(max_length=50,null=True,default='')
     temporaryaddress = models.CharField(max_length=500,null=True,default='')
     permanentaddress = models.CharField(max_length=500,null=True,default='')
@@ -53,14 +54,21 @@ class Candidate(User):
     refrence_name_2 = models.CharField(max_length=30,null=True,default='')
     refrence_email_2 = models.EmailField(null=True,default='')
     refrence_phone_2 = models.CharField(max_length=20,null=True,default='')
+    assigned_hr=models.ForeignKey('hrstaff',null=True,blank=True,on_delete=models.SET_NULL)
 
     
 
-
 class hrstaff(User):
-    pass
+   autonumber=models.CharField(default='101',max_length=50,null=True)
 
 class employee(User):
     pass
+
+# class status(models.Model):
+#     candidate=models.ForeignKey(User,on_delete=models.CASCADE)
+#     status=models.BooleanField(default=False);
+#     verifier=models.ForeignKey(User,on_delete=models.CASCADE)
+    
+
 
     
