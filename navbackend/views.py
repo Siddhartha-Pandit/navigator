@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import get_object_or_404
 from . tokens import generate_token
 # from django.contrib.auth.models import User
@@ -10,7 +11,7 @@ from rest_framework.decorators import api_view,permission_classes
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from . mailexpress import mailexpress
 from django.template.loader import render_to_string
-from .models import User,Candidate
+from .models import User,Candidate,hrstaff
 # from django.utils.encoding import force_bytes, force_text
 from django.utils.encoding import force_bytes,force_str
 from .serializers import UserSerializers,CandidateSerializer
@@ -25,7 +26,7 @@ def signin(request):
         if user.is_email_verified:
         
             login(request,user)
-            serializer=UserSerializers(user)
+            serializer = UserSerializers(user)
            
             return Response(serializer.data,status=status.HTTP_200_OK)
         else:
@@ -43,6 +44,7 @@ def signup(request):
     password=request.data.get('password')
     fname=request.data.get('fname')
     lname=request.data.get('lname')
+    hr_staff = hrstaff.objects.all()
    
     
     myuser=User.objects.create_user(email=email,password=password)
@@ -50,9 +52,11 @@ def signup(request):
     myuser.first_name=fname
     myuser.last_name=lname
     myuser.user_type="candidate"
-    myuser.is_email_verified=False
+    user.is_email_verified=True
     myuser.is_active=False
-    user.gender="Male"
+    assigned_hr = random.choice(hr_staff)
+    user.assigned_hr = assigned_hr
+    user.save()
     myuser.save()
     current_site=get_current_site(request)
     message2=render_to_string('confirmemial.html',{
@@ -112,6 +116,20 @@ def personalinfoget(request, email):
 
  
     serializer = CandidateSerializer(candidate)  # Use the CandidateSerializer to serialize Candidate model data
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def allcandidate(request):
+    try:
+        # candidate = get_object_or_404(Candidate, email=email)
+        candidate = Candidate.objects.all()
+        print(candidate)
+    except Candidate.DoesNotExist:
+        return Response({'message': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+ 
+    serializer = CandidateSerializer(candidate,many=True)  # Use the CandidateSerializer to serialize Candidate model data
     return Response(serializer.data, status=status.HTTP_200_OK)
 
    

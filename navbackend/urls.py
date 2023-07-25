@@ -4,6 +4,7 @@ urlpatterns=[
     path('signin/',views.signin,name='signin'),
     path('signup/',views.signup,name='signout'),
     path('signout/',views.signout,name='signout'),
+    path('allcandidate/',views.allcandidate,name='allcandidate'),
     path('personalinfoget/<str:email>',views.personalinfoget,name='getpersonalinfo'),
     path('personalinfopost/<str:email>',views.personalinfopost,name='postpersonalinfo'),
     
