@@ -7,6 +7,7 @@ urlpatterns=[
     path('allcandidate/',views.allcandidate,name='allcandidate'),
     path('personalinfoget/<str:email>',views.personalinfoget,name='getpersonalinfo'),
     path('personalinfopost/<str:email>',views.personalinfopost,name='postpersonalinfo'),
+    path('hrassign/<str:hrstaff>',views.assignedcandiate,name='postpersonalinfo'),
     
     path('verify/<uidb64>/<token>',views.activate,name='activate'),
     

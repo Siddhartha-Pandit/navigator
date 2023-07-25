@@ -118,6 +118,19 @@ def personalinfoget(request, email):
     serializer = CandidateSerializer(candidate)  # Use the CandidateSerializer to serialize Candidate model data
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def assignedcandiate(request, hrstaff):
+    try:
+        # candidate = get_object_or_404(Candidate, email=email)
+        candidate = Candidate.objects.get(assigned_hr=hrstaff)
+        print(candidate)
+    except Candidate.DoesNotExist:
+        return Response({'message': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+ 
+    serializer = CandidateSerializer(candidate)  # Use the CandidateSerializer to serialize Candidate model data
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def allcandidate(request):
