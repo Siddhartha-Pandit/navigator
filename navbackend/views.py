@@ -11,10 +11,10 @@ from rest_framework.decorators import api_view,permission_classes
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from . mailexpress import mailexpress
 from django.template.loader import render_to_string
-from .models import User,Candidate,hrstaff
+from .models import User,Candidate,hrstaff,isselected
 # from django.utils.encoding import force_bytes, force_text
 from django.utils.encoding import force_bytes,force_str
-from .serializers import UserSerializers,CandidateSerializer
+from .serializers import UserSerializers,CandidateSerializer,SelectedSerializer
 # from .permission import CanUpdateorReadonly
 @api_view(['POST'])
 def signin(request):
@@ -49,6 +49,7 @@ def signup(request):
     
     myuser=User.objects.create_user(email=email,password=password)
     user=Candidate.objects.create_user(email=email,password=password)
+    selected = isselected.objects.create(candidate=user)
     myuser.first_name=fname
     myuser.last_name=lname
     myuser.user_type="candidate"
@@ -56,6 +57,8 @@ def signup(request):
     myuser.is_active=False
     assigned_hr = random.choice(hr_staff)
     user.assigned_hr = assigned_hr
+    selected.email=email
+    selected.save()
     user.save()
     myuser.save()
     current_site=get_current_site(request)
@@ -145,7 +148,21 @@ def allcandidate(request):
     serializer = CandidateSerializer(candidate,many=True)  # Use the CandidateSerializer to serialize Candidate model data
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-   
+
+@api_view(['POST'])
+def selected(request,email):
+    try:
+        selected = isselected.objects.get(candidate=email)
+    except isselected.DoesNotExist:
+        return Response({'message': 'Selected candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = SelectedSerializer(instance=selected, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
     
 @api_view(['PUT'])
 def personalinfopost(request, email):

@@ -61,6 +61,13 @@ class Candidate(User):
 class hrstaff(User):
    autonumber=models.CharField(default='101',max_length=50,null=True)
 
+class isselected(models.Model):
+    candidate = models.ForeignKey(Candidate, null=True, blank=True, on_delete=models.SET_NULL)
+    status = models.BooleanField(null=True, default=False)
+
+    def __str__(self):
+        return self.candidate.email if self.candidate else 'No Candidate'
+
 class employee(User):
     pass
 
