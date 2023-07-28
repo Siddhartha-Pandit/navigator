@@ -126,7 +126,7 @@ def assignedcandiate(request, hrstaff):
     try:
         # candidate = get_object_or_404(Candidate, email=email)
         candidate = Candidate.objects.filter(assigned_hr=hrstaff)
-        print(candidate)
+       
     except Candidate.DoesNotExist:
         return Response({'message': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -150,9 +150,9 @@ def allcandidate(request):
 
 
 @api_view(['POST'])
-def selected(request,email):
+def selected(request,candidate):
     try:
-        selected = isselected.objects.get(candidate=email)
+        selected = isselected.objects.get(candidate=candidate)
     except isselected.DoesNotExist:
         return Response({'message': 'Selected candidate not found'}, status=status.HTTP_404_NOT_FOUND)
 
